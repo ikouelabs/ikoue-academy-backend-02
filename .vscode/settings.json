@@ -1,0 +1,24 @@
+{
+  "editor.codeActionsOnSave": {
+    "source.fixAll.biome": "explicit"
+  },
+  "biome.lsp.bin": "bun",
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "biomejs.biome",
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.formatOnSaveMode": "file",
+  "editor.rulers": [120],
+  "editor.wordWrap": "wordWrapColumn",
+  "editor.wordWrapColumn": 120,
+  "explorer.autoReveal": "focusNoScroll",
+  "files.associations": {
+    ".env*": "dotenv",
+    ".env.local": "dotenv",
+    "*.env": "dotenv"
+  },
+  "[dotenv]": {
+    "editor.formatOnSave": false,
+    "editor.wordWrap": "off"
+  }
+}
