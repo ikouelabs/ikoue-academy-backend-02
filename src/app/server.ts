@@ -9,7 +9,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/", homeRouter);
-app.use("/health", statusRouter);
+app.use("/status", statusRouter);
 app.use("/todos", todosRouter);
 app.use("/users", usersRouter);
 
