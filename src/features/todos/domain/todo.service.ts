@@ -1,3 +1,4 @@
+import type { EmailSender } from "./email.model";
 import type { Todo, TodoRepository } from "./todo.entity";
 
 export interface CreateTodoInput {
@@ -12,9 +13,11 @@ export interface UpdateTodoInput {
 
 export class TodoService {
 	private repo: TodoRepository;
+	private emailSender: EmailSender;
 
-	constructor(repo: TodoRepository) {
+	constructor(repo: TodoRepository, emailSender: EmailSender) {
 		this.repo = repo;
+		this.emailSender = emailSender;
 	}
 
 	getTodoList(): Todo[] {
@@ -22,11 +25,20 @@ export class TodoService {
 	}
 
 	createTodo(todo: CreateTodoInput): Todo {
-		return this.repo.create({
+		// Règle de gestion
+		const result = this.repo.create({
 			...todo,
 			id: crypto.randomUUID(),
 			status: "pending",
 		});
+		// Envoyer un email de confirmation
+		this.emailSender.sendEmail({
+			from: "todo@example.com",
+			to: "user@example.com",
+			subject: "Todo created",
+			html: `<p>Your todo has been created: ${result.title}</p>`,
+		});
+		return result;
 	}
 
 	findById(id: string): Todo | null {
