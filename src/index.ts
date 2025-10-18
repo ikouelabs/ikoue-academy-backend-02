@@ -1,9 +1,9 @@
 require("dotenv").config();
 
 import express from "express";
-import homeRouter from "./routes/home.route";
-import statusRouter from "./routes/status.route";
-import todosRouter from "./routes/todo.route";
+import homeRouter from "./features/home/home.route";
+import statusRouter from "./features/status/status.route";
+import todosRouter from "./features/todos";
 
 const app = express();
 app.use(express.json());
