@@ -4,7 +4,9 @@
 	"type": "module",
 	"private": true,
 	"scripts": {
-		"start": "npm run src/index.ts"
+		"start": "npm run src/index.ts",
+		"test": "bun test",
+		"test:coverage": "bun test --coverage"
 	},
 	"dependencies": {
 		"dotenv": "^17.2.3",

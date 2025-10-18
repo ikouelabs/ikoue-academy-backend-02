@@ -17,8 +17,8 @@ export class SimpleTodoRepository implements TodoRepository {
 		return this.db.find((todo) => todo.id === id) ?? null;
 	}
 
-	update(id: string, todo: Todo): Todo {
-		this.db = this.db.map((t) => (t.id === id ? todo : t));
+	update(todo: Todo): Todo {
+		this.db = this.db.map((t) => (t.id === todo.id ? todo : t));
 		return todo;
 	}
 

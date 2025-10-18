@@ -9,6 +9,6 @@ export interface TodoRepository {
 	findAll(): Todo[];
 	create(todo: Todo): Todo;
 	findById(id: string): Todo | null;
-	update(id: string, todo: Todo): Todo;
+	update(todo: Todo): Todo;
 	delete(id: string): void;
 }

@@ -5,6 +5,11 @@ export interface CreateTodoInput {
 	description?: string;
 }
 
+export interface UpdateTodoInput {
+	title: string;
+	description?: string;
+}
+
 export class TodoService {
 	private repo: TodoRepository;
 
@@ -24,8 +29,19 @@ export class TodoService {
 		});
 	}
 
-	updateTodo(id: string, todo: Todo): Todo {
-		return this.repo.update(id, todo);
+	findById(id: string): Todo | null {
+		return this.repo.findById(id);
+	}
+
+	updateTodo(id: string, todo: UpdateTodoInput): Todo {
+		const existingTodo = this.repo.findById(id) as Todo;
+		if (!existingTodo) {
+			throw new Error("Todo not found");
+		}
+		return this.repo.update({
+			...existingTodo,
+			...todo,
+		});
 	}
 
 	deleteTodo(id: string): void {
