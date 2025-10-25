@@ -1,3 +1,4 @@
+import bcrypt from "bcrypt";
 import type { User, UserRepository } from "./users.entity";
 
 interface CreateUserInput {
@@ -12,10 +13,19 @@ export class UserService {
 		this.repo = repo;
 	}
 
-	createUser(user: CreateUserInput): User {
-		// Vérifier que l'email n'est pas déjà pris
-		// Créer l'utilisateur
-		throw new Error("TODO");
+	async createUser(user: CreateUserInput): Promise<User> {
+		const existingUser = this.repo.findByEmail(user.email);
+		if (existingUser != null) {
+			throw new Error("ERR_EMAIL_ALREADY_TAKEN");
+		}
+		// TODO: vérifier que l'email n'est pas déjà pris
+		const hashedPassword = await bcrypt.hash(user.password, 10);
+		const entity: User = {
+			id: crypto.randomUUID(), // NE JAMAIS UTILISER UN ID AUTO-INCREMENT
+			email: user.email,
+			password: hashedPassword, // [hashé] BCRYPT
+		};
+		return this.repo.create(entity);
 	}
 
 	loginUser(email: string, password: string): User {

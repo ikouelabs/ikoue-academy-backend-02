@@ -15,12 +15,25 @@ const loginSchema = z.object({
 export function createUserController(service: UserService): Router {
 	const router = Router();
 
-	router.post("/", (req: Request, res: Response) => {
+	router.post("/", async (req: Request, res: Response) => {
 		const input = createUserSchema.safeParse(req.body);
 		if (!input.success) {
 			return res.status(400).json({ error: input.error.issues });
 		}
-		return res.json(service.createUser(input.data));
+		try {
+			const result = await service.createUser(input.data); // Promise<User>
+			return res.status(201).json(result);
+		} catch (error) {
+			if (
+				error instanceof Error &&
+				error.message === "ERR_EMAIL_ALREADY_TAKEN"
+			) {
+				return res
+					.status(409)
+					.json({ error: "Cette adresse email est déjà utilisée" });
+			}
+			return res.status(500).json({ error: "Internal server error" });
+		}
 	});
 
 	router.post("/login", (req: Request, res: Response) => {
