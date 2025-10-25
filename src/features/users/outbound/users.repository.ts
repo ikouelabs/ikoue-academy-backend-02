@@ -15,4 +15,8 @@ export class SimpleUserRepository implements UserRepository {
 		}
 		return user;
 	}
+
+	delete(id: string): void {
+		this.db = this.db.filter((user) => user.id !== id);
+	}
 }
