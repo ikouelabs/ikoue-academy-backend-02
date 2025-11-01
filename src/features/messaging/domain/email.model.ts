@@ -1,10 +1,10 @@
 export interface Email {
-	from: string;
+	//from: string;
 	to: string;
 	subject: string;
-	html: string;
+	message: string;
 }
 
 export interface EmailSender {
-	sendEmail(email: Email): void;
+	sendEmail(email: Email): Promise<void>;
 }

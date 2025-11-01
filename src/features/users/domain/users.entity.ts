@@ -2,7 +2,9 @@ export interface User {
 	id: string;
 	email: string;
 	password: string;
-	role?: string;
+	role: string | null;
+	createdAt: Date;
+	updatedAt: Date | null;
 }
 
 export interface LoginOutput {
@@ -10,7 +12,7 @@ export interface LoginOutput {
 }
 
 export interface UserRepository {
-	create(user: User): User;
-	findByEmail(email: string): User | null;
-	delete(id: string): void;
+	create(user: User): Promise<User>;
+	findByEmail(email: string): Promise<User | null>;
+	delete(id: string): Promise<void>;
 }

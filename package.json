@@ -6,15 +6,20 @@
 	"scripts": {
 		"start": "npm run src/index.ts",
 		"test": "bun test",
-		"test:coverage": "bun test --coverage"
+		"test:coverage": "bun test --coverage",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "drizzle-kit migrate"
 	},
 	"dependencies": {
+		"@libsql/client": "^0.15.15",
 		"@types/bcrypt": "^6.0.0",
 		"bcrypt": "^6.0.0",
 		"dotenv": "^17.2.3",
+		"drizzle-orm": "^0.44.7",
 		"express": "^5.1.0",
 		"jest": "^30.2.0",
 		"jsonwebtoken": "^9.0.2",
+		"resend": "^6.4.0",
 		"zod": "^4.1.12"
 	},
 	"devDependencies": {
@@ -23,6 +28,8 @@
 		"@types/express": "^5.0.3",
 		"@types/jsonwebtoken": "^9.0.10",
 		"@types/supertest": "^6.0.3",
-		"supertest": "^7.1.4"
+		"drizzle-kit": "^0.31.6",
+		"supertest": "^7.1.4",
+		"tsx": "^4.20.6"
 	}
 }

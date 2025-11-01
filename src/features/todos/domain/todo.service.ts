@@ -1,4 +1,4 @@
-import type { EmailSender } from "./email.model";
+import type { EmailSender } from "../../messaging/domain/email.model";
 import type { Todo, TodoRepository } from "./todo.entity";
 
 export interface CreateTodoInput {
@@ -13,11 +13,9 @@ export interface UpdateTodoInput {
 
 export class TodoService {
 	private repo: TodoRepository;
-	private emailSender: EmailSender;
 
-	constructor(repo: TodoRepository, emailSender: EmailSender) {
+	constructor(repo: TodoRepository) {
 		this.repo = repo;
-		this.emailSender = emailSender;
 	}
 
 	getTodoList(): Todo[] {
@@ -30,13 +28,6 @@ export class TodoService {
 			...todo,
 			id: crypto.randomUUID(),
 			status: "pending",
-		});
-		// Envoyer un email de confirmation
-		this.emailSender.sendEmail({
-			from: "todo@example.com",
-			to: "user@example.com",
-			subject: "Todo created",
-			html: `<p>Your todo has been created: ${result.title}</p>`,
 		});
 		return result;
 	}

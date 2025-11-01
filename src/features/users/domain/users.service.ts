@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import { createJwtToken } from "../../../lib/auth";
+import type { EmailSender } from "@/features/messaging/domain/email.model";
+import { createJwtToken, verifyJwtToken } from "@/lib/auth";
 import type { LoginOutput, User, UserRepository } from "./users.entity";
 
 interface CreateUserInput {
@@ -10,29 +10,38 @@ interface CreateUserInput {
 
 export class UserService {
 	private repo: UserRepository;
+	private emailSender: EmailSender;
 
-	constructor(repo: UserRepository) {
+	constructor(repo: UserRepository, emailSender: EmailSender) {
 		this.repo = repo;
+		this.emailSender = emailSender;
 	}
 
 	async createUser(user: CreateUserInput): Promise<User> {
-		const existingUser = this.repo.findByEmail(user.email);
+		const existingUser = await this.repo.findByEmail(user.email);
 		if (existingUser != null) {
 			throw new Error("ERR_EMAIL_ALREADY_TAKEN");
 		}
-		// TODO: vérifier que l'email n'est pas déjà pris
 		const hashedPassword = await bcrypt.hash(user.password, 10);
 		const entity: User = {
 			id: crypto.randomUUID(), // NE JAMAIS UTILISER UN ID AUTO-INCREMENT
 			email: user.email,
 			password: hashedPassword, // [hashé] BCRYPT
+			role: null,
+			createdAt: new Date(),
+			updatedAt: null,
 		};
-		return this.repo.create(entity);
+		this.repo.create(entity);
+		await this.emailSender.sendEmail({
+			to: entity.email,
+			subject: "Bienvenue sur l'application",
+			message: `Bonjour ! Votre compte a été créé avec succès. Vous pouvez désormais vous connecter à l'application.`,
+		});
+		return entity;
 	}
 
 	verifyToken(token: string): User | null {
-		const jwtSecret = process.env.JWT_SECRET!;
-		const decoded = jwt.verify(token, jwtSecret);
+		const decoded = verifyJwtToken(token);
 		if (decoded == null) {
 			return null;
 		}
@@ -48,7 +57,7 @@ export class UserService {
 		password: string,
 	): Promise<LoginOutput | null> {
 		// 1 - Est-ce que l'utilisateur existe ?
-		const user = this.repo.findByEmail(email);
+		const user = await this.repo.findByEmail(email);
 		if (!user) {
 			return null;
 		}
