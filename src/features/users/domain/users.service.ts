@@ -29,7 +29,6 @@ export class UserService {
 			password: hashedPassword, // [hashé] BCRYPT
 			role: null,
 			createdAt: new Date(),
-			updatedAt: null,
 		};
 		this.repo.create(entity);
 		await this.emailSender.sendEmail({
