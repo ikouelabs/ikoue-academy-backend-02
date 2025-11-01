@@ -4,7 +4,6 @@ export interface User {
 	password: string;
 	role: string | null;
 	createdAt: Date;
-	updatedAt: Date | null;
 }
 
 export interface LoginOutput {

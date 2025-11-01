@@ -7,13 +7,5 @@ export const usersTable = pgTable("users", {
 	password: text().notNull(),
 	role: text(), // string | null
 	status: text().notNull().default("active"), // "active" | "inactive"
-	createdAt: timestamp().notNull(),
-	//updatedAt: integer({ mode: "timestamp" }), // update
-});
-
-export const todosTable = pgTable("todos", {
-	id: text().primaryKey(),
-	title: text().notNull(),
-	description: text(),
-	status: text().notNull(),
+	createdAt: timestamp("created_at").notNull(), // camelCase ->  snake_case
 });

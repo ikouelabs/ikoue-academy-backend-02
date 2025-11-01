@@ -11,6 +11,6 @@ CREATE TABLE "users" (
 	"password" text NOT NULL,
 	"role" text,
 	"status" text DEFAULT 'active' NOT NULL,
-	"createdAt" timestamp NOT NULL,
+	"created_at" timestamp NOT NULL,
 	CONSTRAINT "users_email_unique" UNIQUE("email")
 );
