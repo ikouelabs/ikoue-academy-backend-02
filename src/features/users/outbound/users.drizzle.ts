@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import db from "@/db";
-import { usersTable } from "@/db/schema";
+import { usersTable } from "@/db/schemas/users";
 import type { User, UserRepository } from "../domain/users.entity";
 
 export class DrizzleUserRepository implements UserRepository {
