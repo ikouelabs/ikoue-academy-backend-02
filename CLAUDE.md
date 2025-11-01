@@ -1,111 +1,139 @@
----
-description: Use Bun instead of Node.js, npm, pnpm, or vite.
-globs: "*.ts, *.tsx, *.html, *.css, *.js, *.jsx, package.json"
-alwaysApply: false
----
+# CLAUDE.md
 
-Default to using Bun instead of Node.js.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-- Use `bun <file>` instead of `node <file>` or `ts-node <file>`
-- Use `bun test` instead of `jest` or `vitest`
-- Use `bun build <file.html|file.ts|file.css>` instead of `webpack` or `esbuild`
-- Use `bun install` instead of `npm install` or `yarn install` or `pnpm install`
-- Use `bun run <script>` instead of `npm run <script>` or `yarn run <script>` or `pnpm run <script>`
-- Bun automatically loads .env, so don't use dotenv.
+## Runtime & Package Manager
 
-## APIs
+This project uses **Bun** (v1.2.23+) as the runtime and package manager. Always use `bun` commands instead of `node`, `npm`, `pnpm`, or `yarn`.
 
-- `Bun.serve()` supports WebSockets, HTTPS, and routes. Don't use `express`.
-- `bun:sqlite` for SQLite. Don't use `better-sqlite3`.
-- `Bun.redis` for Redis. Don't use `ioredis`.
-- `Bun.sql` for Postgres. Don't use `pg` or `postgres.js`.
-- `WebSocket` is built-in. Don't use `ws`.
-- Prefer `Bun.file` over `node:fs`'s readFile/writeFile
-- Bun.$`ls` instead of execa.
+## Development Commands
+
+```bash
+# Install dependencies
+bun install
+
+# Run the server
+bun run index.ts
+
+# Run tests
+bun test
+
+# Run tests with coverage
+bun test --coverage
+
+# Database migrations
+bun run db:generate    # Generate migration files from schema
+bun run db:migrate     # Run pending migrations
+```
+
+## Architecture
+
+This backend follows **Hexagonal Architecture** (Ports & Adapters pattern) with a feature-based folder structure.
+
+### Feature Structure
+
+Each feature is organized into three layers:
+
+```
+src/features/{feature-name}/
+├── domain/           # Business logic (entities, services, interfaces)
+├── inbound/          # Input adapters (REST controllers, etc.)
+├── outbound/         # Output adapters (repositories, external services)
+├── index.ts          # Dependency wiring
+└── {feature}.test.ts # Tests
+```
+
+**Key principles:**
+- **Domain layer** contains business logic and defines interfaces (ports). It has no dependencies on external frameworks.
+- **Inbound adapters** handle incoming requests (REST, MCP, etc.) and call domain services.
+- **Outbound adapters** implement domain interfaces for external concerns (database, email, etc.).
+- **index.ts** wires dependencies together (repository → service → controller → router).
+
+### Dependency Flow
+
+```
+index.ts creates:
+  Repository instance → Service instance → Controller/Router
+```
+
+Example from `src/features/users/index.ts`:
+```typescript
+const repository = new DrizzleUserRepository();
+const service = new UserService(repository, emailSender);
+const router = createUserController(service);
+```
+
+### Current Features
+
+- **todos**: Todo management with simple in-memory and Drizzle DB repository implementations
+- **users**: User management with authentication (bcrypt + JWT), email notifications
+- **messaging**: Email abstraction with fake and Resend adapters
+- **status**: Health check endpoint
+- **home**: Root endpoint
+
+## Database
+
+- **ORM**: Drizzle ORM with PostgreSQL dialect
+- **Connection**: `src/db/index.ts` exports configured `db` instance
+- **Schemas**: Defined in `src/db/schemas/` (todos.ts, users.ts)
+- **Config**: `drizzle.config.ts` points to `./src/db/schemas` and outputs to `./drizzle`
+
+Database connection requires `DATABASE_URL` environment variable.
+
+## Authentication
+
+JWT-based authentication implemented in `src/lib/auth.ts`:
+- `createJwtToken(id, email, role)` - Creates signed JWT
+- `verifyJwtToken(token, role?)` - Verifies and decodes JWT with optional role check
+- Requires `JWT_SECRET` environment variable
+
+User passwords are hashed with bcrypt (salt rounds: 10).
+
+## Validation
+
+Input validation uses **Zod** (v4). Schemas are defined in controllers (e.g., `createTodoSchema`, `updateTodoSchema` in `todo.rest.ts`).
 
 ## Testing
 
-Use `bun test` to run tests.
+- Test framework: Bun's built-in test runner
+- Test files: `{feature}.test.ts` alongside feature code
+- Supertest used for HTTP endpoint testing
 
-```ts#index.test.ts
-import { test, expect } from "bun:test";
+## TypeScript Configuration
 
-test("hello world", () => {
-  expect(1).toBe(1);
-});
+- Path alias: `@/*` maps to `./src/*`
+- Module resolution: bundler mode
+- Strict mode enabled
+- Target: ESNext
+
+## Environment Variables
+
+Required environment variables:
+- `DATABASE_URL` - PostgreSQL connection string
+- `JWT_SECRET` - Secret for JWT signing/verification
+- `PORT` - Server port (defaults to 3000)
+
+Load with dotenv (already configured in `src/index.ts` and `drizzle.config.ts`).
+
+## Application Entry Point
+
+- **Entry**: `src/index.ts` - Loads environment, starts Express server
+- **Server setup**: `src/app/server.ts` - Configures Express app and mounts feature routers
+
+## Repository Pattern
+
+Features can have multiple repository implementations. Switch between them in the feature's `index.ts`:
+
+```typescript
+// In src/features/todos/index.ts
+const repository = new SimpleTodoRepository();  // In-memory
+// const repository = new DBTodoRepository();   // Database
 ```
 
-## Frontend
+The service receives the repository through dependency injection and calls the interface methods.
 
-Use HTML imports with `Bun.serve()`. Don't use `vite`. HTML imports fully support React, CSS, Tailwind.
+## Notes
 
-Server:
-
-```ts#index.ts
-import index from "./index.html"
-
-Bun.serve({
-  routes: {
-    "/": index,
-    "/api/users/:id": {
-      GET: (req) => {
-        return new Response(JSON.stringify({ id: req.params.id }));
-      },
-    },
-  },
-  // optional websocket support
-  websocket: {
-    open: (ws) => {
-      ws.send("Hello, world!");
-    },
-    message: (ws, message) => {
-      ws.send(message);
-    },
-    close: (ws) => {
-      // handle close
-    }
-  },
-  development: {
-    hmr: true,
-    console: true,
-  }
-})
-```
-
-HTML files can import .tsx, .jsx or .js files directly and Bun's bundler will transpile & bundle automatically. `<link>` tags can point to stylesheets and Bun's CSS bundler will bundle.
-
-```html#index.html
-<html>
-  <body>
-    <h1>Hello, world!</h1>
-    <script type="module" src="./frontend.tsx"></script>
-  </body>
-</html>
-```
-
-With the following `frontend.tsx`:
-
-```tsx#frontend.tsx
-import React from "react";
-
-// import .css files directly and it works
-import './index.css';
-
-import { createRoot } from "react-dom/client";
-
-const root = createRoot(document.body);
-
-export default function Frontend() {
-  return <h1>Hello, world!</h1>;
-}
-
-root.render(<Frontend />);
-```
-
-Then, run index.ts
-
-```sh
-bun --hot ./index.ts
-```
-
-For more information, read the Bun API docs in `node_modules/bun-types/docs/**.md`.
+- IDs use `crypto.randomUUID()` - never use auto-increment IDs
+- Email sender is configured in `src/features/messaging/index.ts` (currently uses FakeEmailSender)
+- Comments in code are in French; follow existing conventions
